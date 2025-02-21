@@ -1,34 +1,40 @@
-name: Run Script After Push and Every Hour
+name: Run Trading Script
 
 on:
   push:
     branches:
-      - main  # این مرحله زمانی اجرا می‌شود که شما تغییراتی به شاخه main ارسال کنید.
+      - main
   schedule:
-    - cron: '0 * * * *'  # این خط باعث می‌شود اسکریپت هر ساعت اجرا شود.
+    - cron: '0 * * * *'  # اجرای هر یک ساعت
 
 jobs:
-  run-python-script:
-    runs-on: ubuntu-latest  # اجرای کد روی سیستم عامل Ubuntu
+  run-script:
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2  # این مرحله کد شما را از مخزن GitHub دانلود می‌کند
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v2  # این مرحله پایتون را برای محیط GitHub آماده می‌کند
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.8'  # نسخه پایتون مورد استفاده
+          python-version: 3.8
 
-      - name: Install dependencies
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+          sudo apt-get install -y libta-lib0 libta-lib-dev
+          sudo apt-get install -y python3-pip
+
+      - name: Install Python dependencies
         run: |
           pip install --upgrade pip
-          pip install ccxt pandas talib  # نصب کتابخانه‌های مورد نیاز به‌طور مستقیم
+          pip install ccxt pandas smtplib ta-lib
 
-      - name: Run Python script
-        run: |
-          python main.py  # نام اسکریپت پایتون شما که باید اجرا شود
+      - name: Run Script
         env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}  # ایمیل ارسال کننده از GitHub Secrets
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}  # رمز عبور ایمیل از GitHub Secrets
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}  # ایمیل دریافت کننده از GitHub Secrets
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+        run: python main.py
