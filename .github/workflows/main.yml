@@ -1,41 +1,62 @@
-name: Run Trading Script
+
+name: Python package installation
 
 on:
   push:
     branches:
       - main
-  schedule:
-    - cron: '0 * * * *'
 
 jobs:
-  run-script:
+  install_dependencies:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential autoconf libtool ta-lib
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
 
-      - name: Add TA-Lib library path
-        run: |
-          echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf.d/ta-lib.conf
-          sudo ldconfig
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential wget
+        sudo apt-get install -y libffi-dev
+        sudo apt-get install -y libatlas-base-dev
+        sudo apt-get install -y python3-dev
+        sudo apt-get install -y libssl-dev
+        sudo apt-get install -y libcurl4-openssl-dev
 
-      - name: Verify TA-Lib Installation
-        run: ls -l /usr/lib/libta_lib.so* || echo "TA-Lib not found!"
+        # دانلود و نصب TA-Lib
+        wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+        tar -xvzf ta-lib-0.4.0-src.tar.gz
+        cd ta-lib
+        ./configure
+        make
+        sudo make install
 
-      - name: Install Python dependencies manually
-        run: |
-          python -m pip install --upgrade pip
-          pip install ccxt pandas ta-lib
+    - name: Install Python dependencies
+      run: |
+        pip install --upgrade pip
+        pip install TA-Lib
+        pip install -r requirements.txt
 
-      - name: Run trading script
-        run: python main.py
-        env:
-          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
-          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
-          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+    - name: Run trading script
+      run: |
+        # اجرای اسکریپت تریدینگ
+        python3 your_trading_script.py
+
+    - name: Post checkout repository
+      run: |
+        # مرحله پست چک‌اوت
+        echo "Post checkout cleanup"
+
+    - name: Send results via email
+      run: |
+        python3 send_email.py
+      env:
+        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
