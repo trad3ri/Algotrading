@@ -5,7 +5,7 @@ on:
     branches:
       - main
   schedule:
-    - cron: '0 * * * *'  # اجرا در ابتدای هر ساعت
+    - cron: '0 * * * *'
 
 jobs:
   run-script:
@@ -18,16 +18,15 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential autoconf libtool
+          sudo apt-get install -y build-essential autoconf libtool ta-lib
 
-      - name: Install TA-Lib
+      - name: Add TA-Lib library path
         run: |
-          wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
-          tar -xzf ta-lib-0.4.0-src.tar.gz
-          cd ta-lib
-          ./configure --prefix=/usr
-          make
-          sudo make install
+          echo "/usr/local/lib" | sudo tee -a /etc/ld.so.conf.d/ta-lib.conf
+          sudo ldconfig
+
+      - name: Verify TA-Lib Installation
+        run: ls -l /usr/lib/libta_lib.so* || echo "TA-Lib not found!"
 
       - name: Install Python dependencies manually
         run: |
