@@ -19,17 +19,26 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.8'
+          python-version: '3.10'
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential libatlas-base-dev wget tar
+          sudo apt-get install -y build-essential wget tar
+
+      - name: Install TA-Lib from source
+        run: |
+          wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-0.4.0-src.tar.gz
+          tar -xvzf ta-lib-0.4.0-src.tar.gz
+          cd ta-lib
+          ./configure --prefix=/usr
+          make
+          sudo make install
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ccxt pandas TA-Lib
+          pip install ccxt pandas talib
 
       - name: Run Script
         env:
