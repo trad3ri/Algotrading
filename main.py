@@ -3,9 +3,9 @@ import pandas as pd
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import talib as ta_lib
 import os
 import time
+from pyti.zigzag import zigzag  # وارد کردن تابع zigzag از pyti
 
 # تنظیمات ایمیل
 from_email = os.getenv('EMAIL_SENDER')  # ایمیل ارسال کننده از GitHub Secrets
@@ -45,9 +45,11 @@ def fetch_data(symbol, timeframe='30m', max_retries=5):
                 print(f"Max retries reached for {symbol}. Moving to next symbol.")
                 return None  # اگر بعد از چندین تلاش موفق نشد، مقدار None برگرداند
 
-def calculate_zigzag(df):
-    """ محاسبه ZigZag با استفاده از TA-Lib """
-    df['zigzag'] = ta_lib.CDLDOJI(df['open'], df['high'], df['low'], df['close'])
+def calculate_zigzag(df, deviation=0.02):
+    """ محاسبه ZigZag با استفاده از pyti """
+    # استفاده از pyti برای محاسبه Zigzag
+    zz = zigzag(df['close'].values, deviation)
+    df['zigzag'] = zz
     return df
 
 def find_patterns(df):
@@ -70,7 +72,7 @@ def main():
             if df is None:
                 continue  # اگر دریافت داده‌ها با خطا مواجه شد، به ارز بعدی برو
 
-            df = calculate_zigzag(df)
+            df = calculate_zigzag(df)  # محاسبه ZigZag
             patterns = find_patterns(df)
             if patterns:
                 results.append(f"{symbol} {timeframe}: {', '.join(patterns)}")
