@@ -6,6 +6,7 @@ on:
       - main
   schedule:
     - cron: '0 * * * *'  # اجرای هر یک ساعت
+  workflow_dispatch:  # امکان اجرای دستی
 
 jobs:
   run-script:
@@ -13,12 +14,12 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: '3.10'
 
       - name: Install system dependencies
         run: |
@@ -36,8 +37,8 @@ jobs:
 
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
-          pip install ccxt pandas ta-lib
+          python -m pip install --upgrade pip
+          pip install ccxt pandas talib
 
       - name: Run Script
         env:
