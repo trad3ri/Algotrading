@@ -1,0 +1,34 @@
+name: Run Script After Push and Every Hour
+
+on:
+  push:
+    branches:
+      - main  # این مرحله زمانی اجرا می‌شود که شما تغییراتی به شاخه main ارسال کنید.
+  schedule:
+    - cron: '0 * * * *'  # این خط باعث می‌شود اسکریپت هر ساعت اجرا شود.
+
+jobs:
+  run-python-script:
+    runs-on: ubuntu-latest  # اجرای کد روی سیستم عامل Ubuntu
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2  # این مرحله کد شما را از مخزن GitHub دانلود می‌کند
+
+      - name: Set up Python
+        uses: actions/setup-python@v2  # این مرحله پایتون را برای محیط GitHub آماده می‌کند
+        with:
+          python-version: '3.8'  # نسخه پایتون مورد استفاده
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ccxt pandas talib  # نصب کتابخانه‌های مورد نیاز به‌طور مستقیم
+
+      - name: Run Python script
+        run: |
+          python main.py  # نام اسکریپت پایتون شما که باید اجرا شود
+        env:
+          EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}  # ایمیل ارسال کننده از GitHub Secrets
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}  # رمز عبور ایمیل از GitHub Secrets
+          EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}  # ایمیل دریافت کننده از GitHub Secrets
